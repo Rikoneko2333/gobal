@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>残异星群 | 基因流转</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; font-family: 'VT323', monospace; }
+    body { background: #0a0015; color: #ccc; overflow: hidden; }
+    
+    /* 噪声覆盖层 */
+    .noise-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; opacity: 0.08; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"); z-index: 9999; }
+    .scanline-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px); z-index: 9998; }
+    
+    /* 主容器 */
+    .app { width: 100%; height: 100%; position: relative; }
+    
+    /* 首页 */
+    .page-home { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; position: relative; }
+    .title { font-family: 'Press Start 2P', cursive; color: #39ff14; font-size: clamp(16px, 3vw, 28px); text-align: center; line-height: 2; text-shadow: 0 0 20px #39ff14, 4px 4px 0 #0a0015; animation: glitch 4s infinite, titleFloat 8s ease-in-out infinite; margin-bottom: 60px; z-index: 10; }
+    @keyframes glitch { 0%, 90%, 100% { transform: translate(0); } 91% { transform: translate(-2px, 1px); } 92% { transform: translate(2px, -1px); } 93% { transform: translate(-1px, 2px); } }
+    @keyframes titleFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+    
+    /* 导航按钮网格 */
+    .nav-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px; z-index: 10; max-width: 600px; width: 90%; }
+    .nav-btn { background: linear-gradient(135deg, #1a0a2e 0%, #0d001a 100%); border: 3px solid #39ff14; color: #39ff14; font-family: 'Press Start 2P', cursive; font-size: 12px; padding: 20px 15px; cursor: pointer; transition: all 0.2s; text-align: center; box-shadow: 0 0 15px rgba(57, 255, 20, 0.3); }
+    .nav-btn:hover { transform: scale(1.05); border-color: #8b00ff; color: #8b00ff; box-shadow: 0 0 25px rgba(139, 0, 255, 0.5); }
+    .nav-btn.danger { border-color: #ff0040; color: #ff0040; }
+    .nav-btn.danger:hover { border-color: #ff4070; color: #ff4070; box-shadow: 0 0 25px rgba(255, 0, 64, 0.5); }
+    .nav-btn.secondary { border-color: #8b00ff; color: #8b00ff; }
+    
+    /* 用户控制 */
+    .user-controls { position: fixed; top: 20px; right: 20px; z-index: 100; }
+    .auth-btn { background: linear-gradient(135deg, #1a0a2e 0%, #0d001a 100%); border: 3px solid #39ff14; color: #39ff14; font-family: 'Press Start 2P', cursive; font-size: 10px; padding: 12px 16px; cursor: pointer; }
+    .user-panel { background: linear-gradient(135deg, rgba(26,10,46,0.95) 0%, rgba(13,0,26,0.98) 100%); border: 3px solid #8b00ff; padding: 15px; display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+    .user-name { font-family: 'Press Start 2P', cursive; color: #39ff14; font-size: 10px; }
+    .user-trait { color: #ff0040; font-size: 16px; }
+    .logout-btn { background: none; border: 2px solid #ff0040; color: #ff0040; font-family: 'Press Start 2P', cursive; font-size: 8px; padding: 6px 12px; cursor: pointer; }
+    
+    /* 浮动装饰 */
+    .float-deco { position: absolute; font-size: 40px; opacity: 0.15; animation: floatAround 20s linear infinite; }
+    .float-deco:nth-child(1) { top: 20%; left: 10%; }
+    .float-deco:nth-child(2) { top: 60%; right: 15%; animation-delay: -5s; }
+    .float-deco:nth-child(3) { bottom: 20%; left: 20%; animation-delay: -10s; }
+    .float-deco:nth-child(4) { top: 30%; right: 25%; animation-delay: -15s; }
+    @keyframes floatAround { 0% { transform: translate(0, 0) rotate(0deg); } 25% { transform: translate(50px, -50px) rotate(90deg); } 50% { transform: translate(0, -100px) rotate(180deg); } 75% { transform: translate(-50px, -50px) rotate(270deg); } 100% { transform: translate(0, 0) rotate(360deg); } }
+    
+    /* 返回按钮 */
+    .back-btn { position: fixed; top: 20px; left: 20px; z-index: 100; background: linear-gradient(135deg, #1a0a2e 0%, #0d001a 100%); border: 2px solid #8b00ff; color: #8b00ff; font-family: 'Press Start 2P', cursive; font-size: 10px; padding: 10px 16px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .back-btn:hover { border-color: #39ff14; color: #39ff14; box-shadow: 0 0 20px rgba(57, 255, 20, 0.4); }
+    
+    /* 通用页面样式 */
+    .page { display: none; padding: 100px 40px 60px; min-height: 100vh; overflow-y: auto; position: relative; }
+    .page.active { display: block; }
+    .page-title { font-family: 'Press Start 2P', cursive; color: #ff0040; font-size: clamp(18px, 4vw, 32px); text-align: center; margin-bottom: 20px; text-shadow: 0 0 20px #ff0040; }
+    .page-subtitle { text-align: center; color: #8b00ff; font-family: 'Press Start 2P', cursive; font-size: clamp(8px, 2vw, 12px); margin-bottom: 60px; }
+    
+    /* 世界观页面 */
+    .worldview-content { max-width: 900px; margin: 0 auto; display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; }
+    .worldview-card { background: linear-gradient(135deg, rgba(139,0,255,0.1) 0%, rgba(57,255,20,0.05) 100%); border: 3px solid #39ff14; padding: 40px 30px; position: relative; animation: cardIn 0.8s ease forwards; opacity: 0; }
+    .worldview-card:nth-child(1) { animation-delay: 0.2s; }
+    .worldview-card:nth-child(2) { animation-delay: 0.4s; }
+    .worldview-card:nth-child(3) { animation-delay: 0.6s; }
+    @keyframes cardIn { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: translateY(0); } }
+    .worldview-card::before { content: ''; position: absolute; top: -8px; left: -8px; right: -8px; bottom: -8px; border: 2px solid #8b00ff; opacity: 0.5; pointer-events: none; }
+    .worldview-card::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #39ff14, #8b00ff, #ff0040, #39ff14); background-size: 200% 100%; animation: colorShift 3s linear infinite; }
+    @keyframes colorShift { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+    .card-icon-wrapper { width: 70px; height: 70px; border: 3px solid #8b00ff; display: flex; justify-content: center; align-items: center; margin: 0 auto 20px; background: rgba(139,0,255,0.1); }
+    .card-icon { font-size: 36px; }
+    .card-title { font-family: 'Press Start 2P', cursive; color: #ff0040; font-size: 14px; text-align: center; margin-bottom: 20px; }
+    .card-desc { color: #ccc; font-size: 18px; line-height: 1.8; text-align: center; letter-spacing: 1px; }
+    
+    /* 留言板 */
+    .message-board { max-width: 800px; margin: 0 auto; }
+    .message-form { background: linear-gradient(135deg, rgba(57,255,20,0.05) 0%, rgba(139,0,255,0.08) 100%); border: 3px solid #39ff14; padding: 25px; margin-bottom: 40px; }
+    .message-input { width: 100%; min-height: 100px; background: rgba(0,0,0,0.5); border: 2px solid #8b00ff; padding: 15px; color: #ccc; font-family: 'VT323', monospace; font-size: 18px; resize: vertical; outline: none; margin-bottom: 15px; }
+    .message-input:focus { border-color: #39ff14; box-shadow: 0 0 20px rgba(57, 255, 20, 0.2); }
+    .form-footer { display: flex; justify-content: space-between; align-items: center; }
+    .char-count { font-family: 'Press Start 2P', cursive; color: #666; font-size: 10px; }
+    .submit-btn { background: linear-gradient(135deg, #1a0a2e 0%, #0d001a 100%); border: 3px solid #39ff14; color: #39ff14; font-family: 'Press Start 2P', cursive; font-size: 10px; padding: 10px 20px; cursor: pointer; }
+    .submit-btn:hover { border-color: #8b00ff; color: #8b00ff; }
+    .messages-list { display: flex; flex-direction: column; gap: 25px; }
+    .message-item { background: linear-gradient(135deg, rgba(26,10,46,0.9) 0%, rgba(13,0,26,0.95) 100%); border: 2px solid #8b00ff; padding: 20px 25px; display: flex; gap: 18px; position: relative; animation: msgIn 0.5s ease forwards; opacity: 0; }
+    @keyframes msgIn { from { opacity: 0; transform: translateX(-30px); } to { opacity: 1; transform: translateX(0); } }
+    .message-item:hover { border-color: #ff0040; transform: translateX(10px); box-shadow: -5px 0 20px rgba(255, 0, 64, 0.2); }
+    .msg-icon { font-size: 36px; flex-shrink: 0; }
+    .msg-content { flex: 1; }
+    .msg-header { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .msg-author { font-family: 'Press Start 2P', cursive; color: #39ff14; font-size: 10px; }
+    .msg-trait { color: #8b00ff; font-size: 16px; }
+    .msg-time { color: #666; font-family: 'Press Start 2P', cursive; font-size: 8px; margin-left: auto; }
+    .msg-text { color: #ddd; font-size: 18px; line-height: 1.6; }
+    .delete-btn { position: absolute; top: 5px; right: 5px; background: none; border: 2px solid #ff0040; color: #ff0040; width: 28px; height: 28px; font-size: 16px; cursor: pointer; opacity: 0; transition: opacity 0.2s; }
+    .message-item:hover .delete-btn { opacity: 1; }
+    
+    /* 物种图鉴 */
+    .species-grid { display: flex; flex-wrap: wrap; gap: 30px; justify-content: center; max-width: 1000px; margin: 0 auto; }
+    .species-card { background: linear-gradient(135deg, rgba(26,10,46,0.9) 0%, rgba(13,0,26,0.95) 100%); border: 3px solid #39ff14; padding: 30px; width: 280px; position: relative; transition: all 0.3s; }
+    .species-card:nth-child(1) { transform: rotate(-2deg); }
+    .species-card:nth-child(2) { transform: rotate(3deg); }
+    .species-card:nth-child(3) { transform: rotate(-1deg); }
+    .species-card:hover { transform: scale(1.05) rotate(0deg) !important; border-color: #ff0040; box-shadow: 0 0 30px rgba(255, 0, 64, 0.3); z-index: 10; }
+    .species-icon { font-size: 48px; text-align: center; margin-bottom: 15px; }
+    .species-name { font-family: 'Press Start 2P', cursive; color: #39ff14; font-size: 12px; text-align: center; margin-bottom: 10px; }
+    .species-desc { color: #ccc; font-size: 16px; line-height: 1.6; text-align: center; margin-bottom: 15px; }
+    .species-traits { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+    .trait-tag { color: #8b00ff; font-size: 14px; padding: 4px 10px; border: 1px solid #8b00ff; }
+    
+    /* 培养舱 */
+    .chamber-container { max-width: 1000px; margin: 0 auto; }
+    .chamber-area { background: rgba(0,0,0,0.3); border: 4px solid #39ff14; height: 500px; position: relative; margin-bottom: 20px; }
+    .element-library { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+    .library-item { background: linear-gradient(135deg, #1a0a2e 0%, #0d001a 100%); border: 2px solid #8b00ff; color: #8b00ff; font-family: 'VT323', monospace; font-size: 16px; padding: 10px 15px; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+    .library-item:hover { border-color: #39ff14; color: #39ff14; }
+    .chamber-controls { display: flex; gap: 15px; }
+    .chamber-btn { background: linear-gradient(135deg, #1a0a2e 0%, #0d001a 100%); border: 3px solid #39ff14; color: #39ff14; font-family: 'Press Start 2P', cursive; font-size: 10px; padding: 12px 20px; cursor: pointer; }
+    .chamber-btn.danger { border-color: #ff0040; color: #ff0040; }
+    
+    /* 基因存档 */
+    .archive-list { max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 15px; }
+    .archive-item { background: linear-gradient(135deg, rgba(26,10,46,0.8) 0%, rgba(13,0,26,0.9) 100%); border: 2px solid #8b00ff; padding: 20px; display: flex; align-items: center; gap: 15px; cursor: pointer; transition: all 0.2s; }
+    .archive-item:hover { border-color: #39ff14; transform: translateX(10px); }
+    .archive-icon { font-size: 30px; }
+    .archive-info { flex: 1; }
+    .archive-title { font-family: 'Press Start 2P', cursive; color: #39ff14; font-size: 10px; margin-bottom: 5px; }
+    .archive-meta { color: #666; font-size: 14px; }
+    
+    /* 模态框 */
+    .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 10000; }
+    .modal-overlay.active { display: flex; }
+    .modal { background: linear-gradient(135deg, #1a0a2e 0%, #0d001a 100%); border: 4px solid #39ff14; padding: 30px; max-width: 450px; width: 90%; position: relative; box-shadow: 0 0 30px rgba(57, 255, 20, 0.3); }
+    .modal::before { content: ''; position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px; border: 2px solid #8b00ff; pointer-events: none; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+    .modal-title { font-family: 'Press Start 2P', cursive; color: #39ff14; font-size: 18px; }
+    .close-btn { background: none; border: none; color: #ff0040; font-size: 36px; cursor: pointer; padding: 0; line-height: 1; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; }
+    .form-group label { color: #8b00ff; font-family: 'Press Start 2P', cursive; font-size: 12px; }
+    .form-input { background: #0a0015; border: 3px solid #39ff14; padding: 12px 15px; color: #39ff14; font-family: 'Press Start 2P', cursive; font-size: 12px; outline: none; }
+    .form-input:focus { border-color: #8b00ff; box-shadow: 0 0 15px rgba(139, 0, 255, 0.3); }
+    .form-select { background: #0a0015; border: 3px solid #39ff14; padding: 12px 15px; color: #39ff14; font-family: 'Press Start 2P', cursive; font-size: 10px; outline: none; cursor: pointer; }
+    .modal-actions { display: flex; justify-content: center; gap: 15px; margin-top: 20px; }
+    .modal-footer { text-align: center; margin-top: 25px; color: #666; font-size: 12px; }
+    .switch-link { color: #39ff14; text-decoration: underline; cursor: pointer; background: none; border: none; font-family: 'Press Start 2P', cursive; font-size: 11px; }
+    .switch-link:hover { color: #8b00ff; }
+    
+    /* 页脚装饰 */
+    .footer-text { text-align: center; margin-top: 80px; color: #666; font-size: 14px; letter-spacing: 3px; }
+    
+    /* 滚动条 */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0d001a; }
+    ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #39ff14, #8b00ff); }
+    
+    /* 移动端适配 */
+    @media (max-width: 768px) {
+      .nav-grid { grid-template-columns: 1fr; }
+      .title { font-size: 14px; }
+      .user-controls { top: 10px; right: 10px; }
+      .back-btn { top: 10px; left: 10px; padding: 8px 12px; font-size: 8px; }
+      .page { padding: 80px 20px 40px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="noise-overlay"></div>
+  <div class="scanline-overlay"></div>
+  
+  <div class="app">
+    <!-- 用户控制 -->
+    <div class="user-controls" id="userControls">
+      <button class="auth-btn" onclick="openAuthModal()">玩家登入/注册</button>
+    </div>
+    
+    <!-- 首页 -->
+    <div class="page-home" id="pageHome">
+      <div class="float-deco">🧬</div>
+      <div class="float-deco">🦴</div>
+      <div class="float-deco">👁</div>
+      <div class="float-deco">🌸</div>
+      
+      <h1 class="title">早上好<br>今天你又哪里残疾了</h1>
+      
+      <div class="nav-grid">
+        <button class="nav-btn" onclick="showPage('worldview')">世界观</button>
+        <button class="nav-btn secondary" onclick="showPage('species')">物种图鉴</button>
+        <button class="nav-btn" onclick="showPage('archive')">基因存档</button>
+        <button class="nav-btn danger" onclick="showPage('messageboard')">留言板</button>
+        <button class="nav-btn danger" onclick="showPage('chamber')">我的培养舱</button>
+      </div>
+      
+      <div class="footer-text" style="position: fixed; bottom: 30px; right: 30px; text-align: right;">
+        <p style="color: #39ff14; font-family: 'Press Start 2P', cursive; font-size: 10px; margin-bottom: 5px;">残异星群</p>
+        <p style="color: #666; font-size: 10px;">CHIMERIC STAR COLONY // 2024</p>
+      </div>
+    </div>
+    
+    <!-- 世界观页面 -->
+    <div class="page" id="pageWorldview">
+      <button class="back-btn" onclick="showPage('home')">◀ 返回首页</button>
+      <h1 class="page-title">基因流转的冷酷逻辑</h1>
+      <p class="page-subtitle">欢迎来到残异星群</p>
+      
+      <div class="worldview-content">
+        <div class="worldview-card">
+          <div class="card-icon-wrapper"><span class="card-icon">🧬</span></div>
+          <h3 class="card-title">没有健全人</h3>
+          <p class="card-desc">残疾是日常，是新性状的解锁。在这个时代，完美是无趣的。我们都在不断进化，残缺只是基因表达的另一种形式。</p>
+        </div>
+        <div class="worldview-card">
+          <div class="card-icon-wrapper"><span class="card-icon">🍖</span></div>
+          <h3 class="card-title">吃人不是罪恶</h3>
+          <p class="card-desc">是消失基因的回收与延续。当一个生命逝去，我们不埋葬，而是吸收。让优秀的DNA继续流转，这是对逝者最高的敬意。</p>
+        </div>
+        <div class="worldview-card">
+          <div class="card-icon-wrapper"><span class="card-icon">🧩</span></div>
+          <h3 class="card-title">生物边界崩塌</h3>
+          <p class="card-desc">人/植物/动物，都是DNA拼接的产物。你身上可能有一朵花的基因，一株草的叶绿体，或是一条鱼的鳃。我们都是嵌合体。</p>
+        </div>
+      </div>
+      
+      <p class="footer-text">基因永恒流转 · 生命永不消逝</p>
+    </div>
+    
+    <!-- 物种图鉴 -->
+    <div class="page" id="pageSpecies">
+      <button class="back-btn" onclick="showPage('home')">◀ 返回首页</button>
+      <h1 class="page-title">物种图鉴</h1>
+      <p class="page-subtitle">// 嵌合生物档案</p>
+      
+      <div class="species-grid">
+        <div class="species-card">
+          <div class="species-icon">🌿</div>
+          <h3 class="species-name">植行种</h3>
+          <p class="species-desc">能行走的智慧植物，根系是肢体，叶片是皮肤。它们进行光合作用，不需要传统食物。</p>
+          <div class="species-traits">
+            <span class="trait-tag">#根系肢体</span>
+            <span class="trait-tag">#光合代谢</span>
+            <span class="trait-tag">#叶绿素循环</span>
+          </div>
+        </div>
+        <div class="species-card">
+          <div class="species-icon">🌸</div>
+          <h3 class="species-name">花兽嵌体</h3>
+          <p class="species-desc">动物与花朵的嵌合生物，花瓣长在骨骼上，释放信息素吸引猎物。美丽而致命。</p>
+          <div class="species-traits">
+            <span class="trait-tag">#花骨骼</span>
+            <span class="trait-tag">#信息素</span>
+            <span class="trait-tag">#拟态诱惑</span>
+          </div>
+        </div>
+        <div class="species-card">
+          <div class="species-icon">👁</div>
+          <h3 class="species-name">缺因者</h3>
+          <p class="species-desc">携带稀缺缺失基因的个体，是所有人的目标。它们的基因能解锁全新的进化方向。</p>
+          <div class="species-traits">
+            <span class="trait-tag">#稀缺基因</span>
+            <span class="trait-tag">#进化钥匙</span>
+            <span class="trait-tag">#珍贵目标</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 基因存档 -->
+    <div class="page" id="pageArchive">
+      <button class="back-btn" onclick="showPage('home')">◀ 返回首页</button>
+      <h1 class="page-title">基因存档库</h1>
+      <p class="page-subtitle">// CHIMERIC STAR COLONY ARCHIVE</p>
+      
+      <div class="archive-list">
+        <div class="archive-item">
+          <span class="archive-icon">🧬</span>
+          <div class="archive-info">
+            <div class="archive-title">神经接口协议 v2.47</div>
+            <div class="archive-meta">[Cybernetic] · 2089-03-15 · 4.2MB</div>
+          </div>
+        </div>
+        <div class="archive-item">
+          <span class="archive-icon">📄</span>
+          <div class="archive-info">
+            <div class="archive-title">嵌合生物基因库 第三版</div>
+            <div class="archive-meta">[GeneBank] · 2091-07-22 · 128.7MB</div>
+          </div>
+        </div>
+        <div class="archive-item">
+          <span class="archive-icon">📖</span>
+          <div class="archive-info">
+            <div class="archive-title">意识上传指南</div>
+            <div class="archive-meta">[Documentation] · 2088-11-03 · 2.1MB</div>
+          </div>
+        </div>
+        <div class="archive-item">
+          <span class="archive-icon">🔧</span>
+          <div class="archive-info">
+            <div class="archive-title">生物黑客工具箱 v3</div>
+            <div class="archive-meta">[Tools] · 2093-02-28 · 15.4MB</div>
+          </div>
+        </div>
+        <div class="archive-item">
+          <span class="archive-icon">💀</span>
+          <div class="archive-info">
+            <div class="archive-title">生物朋克宣言 地下版</div>
+            <div class="archive-meta">[Manifesto] · 2077-05-01 · 0.3MB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 留言板 -->
+    <div class="page" id="pageMessageboard">
+      <button class="back-btn" onclick="showPage('home')">◀ 返回首页</button>
+      <h1 class="page-title">基因交易留言板</h1>
+      <p class="page-subtitle">// 在这里交换你的DNA残片</p>
+      
+      <div class="message-board">
+        <div class="message-form">
+          <textarea class="message-input" id="messageInput" placeholder="写下你想交换的基因..." maxlength="300" disabled></textarea>
+          <div class="form-footer">
+            <span class="char-count" id="charCount">0/300</span>
+            <button class="submit-btn" onclick="submitMessage()" disabled>发布留言</button>
+          </div>
+          <p style="color: #8b00ff; font-size: 14px; margin-top: 10px; text-align: center;" id="loginHint">请先登入以发布留言</p>
+        </div>
+        
+        <div class="messages-list" id="messagesList"></div>
+      </div>
+    </div>
+    
+    <!-- 培养舱 -->
+    <div class="page" id="pageChamber">
+      <button class="back-btn" onclick="showPage('home')">◀ 返回首页</button>
+      <h1 class="page-title">我的基因培养舱</h1>
+      <p class="page-subtitle">// 创造你的专属嵌合生物</p>
+      
+      <div class="chamber-container">
+        <div class="element-library" id="elementLibrary">
+          <div class="library-item" onclick="addElement('🧬', 'dna')">🧬 DNA片段</div>
+          <div class="library-item" onclick="addElement('🌿', 'root')">🌿 植物根系</div>
+          <div class="library-item" onclick="addElement('🌸', 'flower')">🌸 蔷薇花</div>
+          <div class="library-item" onclick="addElement('👁', 'eye')">👁 嵌合眼</div>
+          <div class="library-item" onclick="addElement('🦷', 'tooth')">🦷 兽牙</div>
+          <div class="library-item" onclick="addElement('🦴', 'bone')">🦴 骨骼</div>
+          <div class="library-item" onclick="addElement('🍃', 'leaf')">🍃 叶片</div>
+          <div class="library-item" onclick="addElement('🌱', 'vine')">🌱 藤蔓</div>
+          <div class="library-item" onclick="addElement('👀', 'eyeball')">👀 眼球</div>
+          <div class="library-item" onclick="addElement('🌀', 'antenna')">🌀 触角</div>
+          <div class="library-item" onclick="addElement('🌺', 'petal')">🌺 花瓣</div>
+          <div class="library-item" onclick="addElement('⚡', 'nerve')">⚡ 神经</div>
+        </div>
+        
+        <div class="chamber-area" id="chamberArea"></div>
+        
+        <div class="chamber-controls">
+          <button class="chamber-btn" onclick="saveChamber()">💾 保存舱室</button>
+          <button class="chamber-btn danger" onclick="clearChamber()">🗑️ 重置布局</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 认证模态框 -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">玩家登入</h2>
+        <button class="close-btn" onclick="closeAuthModal()">×</button>
+      </div>
+      
+      <div id="loginForm">
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" class="form-input" id="loginUsername" placeholder="输入用户名">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" class="form-input" id="loginPassword" placeholder="输入密码">
+        </div>
+        <div class="modal-actions">
+          <button class="submit-btn" onclick="handleLogin()">登入</button>
+        </div>
+        <div class="modal-footer">
+          还没有账号？<button class="switch-link" onclick="switchToRegister()">立即注册</button>
+        </div>
+      </div>
+      
+      <div id="registerForm" style="display: none;">
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" class="form-input" id="regUsername" placeholder="输入用户名">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" class="form-input" id="regPassword" placeholder="输入密码">
+        </div>
+        <div class="form-group">
+          <label>选择残异性状</label>
+          <select class="form-select" id="regTrait">
+            <option>第三只眼</option>
+            <option>荧光骨骼</option>
+            <option>花瓣肌肤</option>
+            <option>根系肢体</option>
+            <option>神经触手</option>
+            <option>复眼视觉</option>
+            <option>生物发光</option>
+            <option>金属血脉</option>
+            <option>水晶指甲</option>
+            <option>藤蔓毛发</option>
+            <option>鳞片皮肤</option>
+            <option>鳃呼吸系统</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button class="submit-btn" onclick="handleRegister()">注册</button>
+        </div>
+        <div class="modal-footer">
+          已有账号？<button class="switch-link" onclick="switchToLogin()">立即登入</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 数据存储
+    let currentUser = null;
+    let users = JSON.parse(localStorage.getItem('bio-punk-users') || '[]');
+    let messages = JSON.parse(localStorage.getItem('bio-punk-messages') || '[]');
+    let chamberElements = JSON.parse(localStorage.getItem('bio-punk-chamber') || '[]');
+    let draggedElement = null;
+    let dragOffset = { x: 0, y: 0 };
+    
+    const icons = ['🧬', '🦴', '🌸', '👁', '🌿', '⚡', '🌀', '💀', '🦷', '🍃'];
+    
+    // 初始化示例数据
+    if (messages.length === 0) {
+      messages = [
+        { id: Date.now() - 100000, username: '基因猎人X', trait: '第三只眼', content: '收一个能光合作用的基因，用发光骨骼交换！', icon: '🧬', time: Date.now() - 86400000 },
+        { id: Date.now() - 50000, username: '嵌合女王', trait: '花瓣肌肤', content: '有人需要玫瑰花瓣基因吗？我这里有新鲜的。', icon: '🌸', time: Date.now() - 43200000 }
+      ];
+      saveMessages();
+    }
+    
+    // 页面切换
+    function showPage(page) {
+      document.querySelectorAll('.page, .page-home').forEach(p => p.classList.remove('active'));
+      if (page === 'home') {
+        document.getElementById('pageHome').style.display = 'flex';
+      } else {
+        document.getElementById('pageHome').style.display = 'none';
+        document.getElementById('page' + page.charAt(0).toUpperCase() + page.slice(1)).classList.add('active');
+      }
+      if (page === 'messageboard') renderMessages();
+      if (page === 'chamber') renderChamber();
+    }
+    
+    // 用户认证
+    function openAuthModal() {
+      document.getElementById('authModal').classList.add('active');
+      switchToLogin();
+    }
+    
+    function closeAuthModal() {
+      document.getElementById('authModal').classList.remove('active');
+    }
+    
+    function switchToLogin() {
+      document.getElementById('loginForm').style.display = 'block';
+      document.getElementById('registerForm').style.display = 'none';
+      document.getElementById('modalTitle').textContent = '玩家登入';
+    }
+    
+    function switchToRegister() {
+      document.getElementById('loginForm').style.display = 'none';
+      document.getElementById('registerForm').style.display = 'block';
+      document.getElementById('modalTitle').textContent = '玩家注册';
+    }
+    
+    function handleLogin() {
+      const username = document.getElementById('loginUsername').value;
+      const password = document.getElementById('loginPassword').value;
+      const user = users.find(u => u.username === username && u.password === password);
+      if (user) {
+        currentUser = user;
+        localStorage.setItem('bio-punk-current-user', JSON.stringify(user));
+        updateUserUI();
+        closeAuthModal();
+        alert('登入成功！欢迎回来，' + username);
+      } else {
+        alert('用户名或密码错误');
+      }
+    }
+    
+    function handleRegister() {
+      const username = document.getElementById('regUsername').value;
+      const password = document.getElementById('regPassword').value;
+      const trait = document.getElementById('regTrait').value;
+      if (users.find(u => u.username === username)) {
+        alert('用户名已存在');
+        return;
+      }
+      const user = { username, password, trait, joinedAt: Date.now() };
+      users.push(user);
+      localStorage.setItem('bio-punk-users', JSON.stringify(users));
+      currentUser = user;
+      localStorage.setItem('bio-punk-current-user', JSON.stringify(user));
+      updateUserUI();
+      closeAuthModal();
+      alert('注册成功！欢迎，' + username);
+    }
+    
+    function updateUserUI() {
+      const savedUser = JSON.parse(localStorage.getItem('bio-punk-current-user'));
+      if (savedUser) currentUser = savedUser;
+      
+      const controls = document.getElementById('userControls');
+      if (currentUser) {
+        controls.innerHTML = `
+          <div class="user-panel">
+            <span class="user-name">${currentUser.username}</span>
+            <span class="user-trait">【${currentUser.trait}】</span>
+            <button class="logout-btn" onclick="handleLogout()">登出</button>
+          </div>
+        `;
+        document.getElementById('messageInput').disabled = false;
+        document.getElementById('messageInput').placeholder = '写下你想交换的基因...';
+        document.querySelector('.submit-btn').disabled = false;
+        document.getElementById('loginHint').style.display = 'none';
+      } else {
+        controls.innerHTML = `<button class="auth-btn" onclick="openAuthModal()">玩家登入/注册</button>`;
+        document.getElementById('messageInput').disabled = true;
+        document.getElementById('messageInput').placeholder = '请先登入以发布留言';
+        document.querySelector('.submit-btn').disabled = true;
+        document.getElementById('loginHint').style.display = 'block';
+      }
+    }
+    
+    function handleLogout() {
+      currentUser = null;
+      localStorage.removeItem('bio-punk-current-user');
+      updateUserUI();
+    }
+    
+    // 留言板
+    function submitMessage() {
+      if (!currentUser) {
+        alert('请先登入');
+        return;
+      }
+      const input = document.getElementById('messageInput');
+      const content = input.value.trim();
+      if (!content) return;
+      const msg = {
+        id: Date.now(),
+        username: currentUser.username,
+        trait: currentUser.trait,
+        content,
+        icon: icons[Math.floor(Math.random() * icons.length)],
+        time: Date.now()
+      };
+      messages.unshift(msg);
+      saveMessages();
+      renderMessages();
+      input.value = '';
+      document.getElementById('charCount').textContent = '0/300';
+    }
+    
+    function deleteMessage(id) {
+      const msg = messages.find(m => m.id === id);
+      if (msg && currentUser && msg.username === currentUser.username) {
+        if (confirm('确定要删除这条留言吗？')) {
+          messages = messages.filter(m => m.id !== id);
+          saveMessages();
+          renderMessages();
+        }
+      } else if (!currentUser) {
+        alert('请先登入');
+      } else {
+        alert('你只能删除自己的留言');
+      }
+    }
+    
+    function saveMessages() {
+      localStorage.setItem('bio-punk-messages', JSON.stringify(messages));
+    }
+    
+    function renderMessages() {
+      const list = document.getElementById('messagesList');
+      list.innerHTML = messages.map((msg, i) => `
+        <div class="message-item" style="animation-delay: ${i * 0.1}s">
+          <span class="msg-icon">${msg.icon}</span>
+          <div class="msg-content">
+            <div class="msg-header">
+              <span class="msg-author">${msg.username}</span>
+              <span class="msg-trait">【${msg.trait}】</span>
+              <span class="msg-time">${formatTime(msg.time)}</span>
+            </div>
+            <p class="msg-text">${msg.content}</p>
+          </div>
+          <button class="delete-btn" onclick="deleteMessage(${msg.id})">×</button>
+        </div>
+      `).join('');
+    }
+    
+    function formatTime(time) {
+      const diff = Date.now() - time;
+      if (diff < 60000) return '刚刚';
+      if (diff < 3600000) return Math.floor(diff / 60000) + '分钟前';
+      if (diff < 86400000) return Math.floor(diff / 3600000) + '小时前';
+      return new Date(time).toLocaleDateString('zh-CN');
+    }
+    
+    // 字数统计
+    document.getElementById('messageInput').addEventListener('input', function() {
+      document.getElementById('charCount').textContent = this.value.length + '/300';
+    });
+    
+    // 培养舱
+    function addElement(icon, type) {
+      const element = {
+        id: Date.now() + Math.random(),
+        icon,
+        type,
+        x: 100 + Math.random() * 300,
+        y: 100 + Math.random() * 200
+      };
+      chamberElements.push(element);
+      renderChamber();
+    }
+    
+    function renderChamber() {
+      const area = document.getElementById('chamberArea');
+      area.innerHTML = chamberElements.map(el => `
+        <div class="chamber-element" 
+             style="left: ${el.x}px; top: ${el.y}px; position: absolute; font-size: 48px; cursor: move; user-select: none; filter: drop-shadow(0 0 10px #39ff14);"
+             data-id="${el.id}"
+             onmousedown="startDrag(event, ${el.id})">
+          ${el.icon}
+          <button style="position: absolute; top: -5px; right: -5px; background: #ff0040; border: none; color: white; width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 12px; line-height: 1;" onclick="event.stopPropagation(); removeElement(${el.id})">×</button>
+        </div>
+      `).join('');
+    }
+    
+    function startDrag(e, id) {
+      draggedElement = chamberElements.find(el => el.id === id);
+      const el = document.querySelector('[data-id="' + id + '"]');
+      dragOffset.x = e.clientX - el.offsetLeft;
+      dragOffset.y = e.clientY - el.offsetTop;
+      
+      document.onmousemove = function(e) {
+        if (!draggedElement) return;
+        const area = document.getElementById('chamberArea');
+        const rect = area.getBoundingClientRect();
+        const newX = Math.max(0, Math.min(e.clientX - rect.left - dragOffset.x + area.scrollLeft, rect.width - 60));
+        const newY = Math.max(0, Math.min(e.clientY - rect.top - dragOffset.y + area.scrollTop, rect.height - 60));
+        draggedElement.x = newX;
+        draggedElement.y = newY;
+        const el = document.querySelector('[data-id="' + draggedElement.id + '"]');
+        if (el) {
+          el.style.left = newX + 'px';
+          el.style.top = newY + 'px';
+        }
+      };
+      
+      document.onmouseup = function() {
+        saveChamber();
+        draggedElement = null;
+        document.onmousemove = null;
+        document.onmouseup = null;
+      };
+    }
+    
+    function removeElement(id) {
+      chamberElements = chamberElements.filter(el => el.id !== id);
+      renderChamber();
+      saveChamber();
+    }
+    
+    function saveChamber() {
+      localStorage.setItem('bio-punk-chamber', JSON.stringify(chamberElements));
+      alert('培养舱已保存！');
+    }
+    
+    function clearChamber() {
+      if (confirm('确定要清空培养舱吗？')) {
+        chamberElements = [];
+        saveChamber();
+        renderChamber();
+      }
+    }
+    
+    // 初始化
+    updateUserUI();
+    renderMessages();
+    renderChamber();
+    
+    // 点击模态框外部关闭
+    document.getElementById('authModal').addEventListener('click', function(e) {
+      if (e.target === this) closeAuthModal();
+    });
+  </script>
+</body>
+</html>
