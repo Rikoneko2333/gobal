@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>残异星群 · 基因流转</title>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="noise-overlay"></div>
+  <div class="scanline-overlay"></div>
+  
+  <div class="app">
+    <!-- 用户控制 -->
+    <div class="user-controls" id="userControls">
+      <button class="auth-btn" onclick="openAuthModal()">玩家登入/注册</button>
+    </div>
+    
+    <!-- 首页 -->
+    <div class="page-home" id="pageHome">
+      <div class="float-deco">🧬</div>
+      <div class="float-deco">🦴</div>
+      <div class="float-deco">👁</div>
+      <div class="float-deco">🌸</div>
+      
+      <h1 class="title">早上好<br>今天你又哪里残疾了</h1>
+      
+      <div class="nav-grid">
+        <button class="nav-btn" onclick="showPage('worldview')">世界观</button>
+        <button class="nav-btn secondary" onclick="showPage('species')">物种图鉴</button>
+        <button class="nav-btn" onclick="showPage('archive')">基因存档</button>
+        <button class="nav-btn danger" onclick="showPage('messageboard')">留言板</button>
+        <button class="nav-btn danger" onclick="showPage('chamber')">我的培养舱</button>
+      </div>
+      
+      <div class="footer-text" style="position: fixed; bottom: 30px; right: 30px; text-align: right;">
+        <p style="color: #39ff14; font-family: 'Press Start 2P', cursive; font-size: 10px; margin-bottom: 5px;">残异星群</p>
+        <p style="color: #666; font-size: 10px;">CHIMERIC STAR COLONY // 2024</p>
+      </div>
+    </div>
+    
+    <!-- 世界观页面 -->
+    <div class="page" id="pageWorldview">
+      <button class="back-btn" onclick="showPage('home')">◀ 返回首页</button>
+      <h1 class="page-title">基因流转的冷酷逻辑</h1>
+      <p class="page-subtitle">欢迎来到残异星群</p>
+      
+      <div class="worldview-content">
+        <div class="worldview-card">
+          <div class="card-icon-wrapper"><span class="card-icon">🧬</span></div>
+          <h3 class="card-title">没有健全人</h3>
+          <p class="card-desc">残疾是日常，是新性状的解锁。在这个时代，完美是无趣的。我们都在不断进化，残缺只是基因表达的另一种形式。</p>
+        </div>
+        <div class="worldview-card">
+          <div class="card-icon-wrapper"><span class="card-icon">🍖</span></div>
+          <h3 class="card-title">吃人不是罪恶</h3>
+          <p class="card-desc">是消失基因的回收与延续。当一个生命逝去，我们不埋葬，而是吸收。让优秀的DNA继续流转，这是对逝者最高的敬意。</p>
+        </div>
+        <div class="worldview-card">
+          <div class="card-icon-wrapper"><span class="card-icon">🧩</span></div>
+          <h3 class="card-title">生物边界崩塌</h3>
+          <p class="card-desc">人/植物/动物，都是DNA拼接的产物。你身上可能有一朵花的基因，一株草的叶绿体，或是一条鱼的鳃。我们都是嵌合体。</p>
+        </div>
+      </div>
+      
+      <p class="footer-text">基因永恒流转 · 生命永不消逝</p>
+    </div>
+    
+    <!-- 物种图鉴 -->
+    <div class="page" id="pageSpecies">
+      <button class="back-btn" onclick="showPage('home')">◀ 返回首页</button>
+      <h1 class="page-title">物种图鉴</h1>
+      <p class="page-subtitle">// 嵌合生物档案</p>
+      
+      <div class="species-grid">
+        <div class="species-card">
+          <div class="species-icon">🌿</div>
+          <h3 class="species-name">植行种</h3>
+          <p class="species-desc">能行走的智慧植物，根系是肢体，叶片是皮肤。它们进行光合作用，不需要传统食物。</p>
+          <div class="species-traits">
+            <span class="trait-tag">#根系肢体</span>
+            <span class="trait-tag">#光合代谢</span>
+            <span class="trait-tag">#叶绿素循环</span>
+          </div>
+        </div>
+        <div class="species-card">
+          <div class="species-icon">🌸</div>
+          <h3 class="species-name">花兽嵌体</h3>
+          <p class="species-desc">动物与花朵的嵌合生物，花瓣长在骨骼上，释放信息素吸引猎物。美丽而致命。</p>
+          <div class="species-traits">
+            <span class="trait-tag">#花骨骼</span>
+            <span class="trait-tag">#信息素</span>
+            <span class="trait-tag">#拟态诱惑</span>
+          </div>
+        </div>
+        <div class="species-card">
+          <div class="species-icon">👁</div>
+          <h3 class="species-name">缺因者</h3>
+          <p class="species-desc">携带稀缺缺失基因的个体，是所有人的目标。它们的基因能解锁全新的进化方向。</p>
+          <div class="species-traits">
+            <span class="trait-tag">#稀缺基因</span>
+            <span class="trait-tag">#进化钥匙</span>
+            <span class="trait-tag">#珍贵目标</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 基因存档 -->
+    <div class="page" id="pageArchive">
+      <button class="back-btn" onclick="showPage('home')">◀ 返回首页</button>
+      <h1 class="page-title">基因存档库</h1>
+      <p class="page-subtitle">// CHIMERIC STAR COLONY ARCHIVE</p>
+      
+      <div class="archive-list">
+        <div class="archive-item">
+          <span class="archive-icon">🧬</span>
+          <div class="archive-info">
+            <div class="archive-title">神经接口协议 v2.47</div>
+            <div class="archive-meta">[Cybernetic] · 2089-03-15 · 4.2MB</div>
+          </div>
+        </div>
+        <div class="archive-item">
+          <span class="archive-icon">📄</span>
+          <div class="archive-info">
+            <div class="archive-title">嵌合生物基因库 第三版</div>
+            <div class="archive-meta">[GeneBank] · 2091-07-22 · 128.7MB</div>
+          </div>
+        </div>
+        <div class="archive-item">
+          <span class="archive-icon">📖</span>
+          <div class="archive-info">
+            <div class="archive-title">意识上传指南</div>
+            <div class="archive-meta">[Documentation] · 2088-11-03 · 2.1MB</div>
+          </div>
+        </div>
+        <div class="archive-item">
+          <span class="archive-icon">🔧</span>
+          <div class="archive-info">
+            <div class="archive-title">生物黑客工具箱 v3</div>
+            <div class="archive-meta">[Tools] · 2093-02-28 · 15.4MB</div>
+          </div>
+        </div>
+        <div class="archive-item">
+          <span class="archive-icon">💀</span>
+          <div class="archive-info">
+            <div class="archive-title">生物朋克宣言 地下版</div>
+            <div class="archive-meta">[Manifesto] · 2077-05-01 · 0.3MB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- 留言板 -->
+    <div class="page" id="pageMessageboard">
+      <button class="back-btn" onclick="showPage('home')">◀ 返回首页</button>
+      <h1 class="page-title">基因交易留言板</h1>
+      <p class="page-subtitle">// 在这里交换你的DNA残片</p>
+      
+      <div class="message-board">
+        <div class="message-form">
+          <textarea class="message-input" id="messageInput" placeholder="请先登入以发布留言" maxlength="300" disabled></textarea>
+          <div class="form-footer">
+            <span class="char-count" id="charCount">0/300</span>
+            <button class="submit-btn" onclick="submitMessage()" disabled>发布留言</button>
+          </div>
+          <p style="color: #8b00ff; font-size: 14px; margin-top: 10px; text-align: center;" id="loginHint">请先登入以发布留言</p>
+        </div>
+        
+        <div class="messages-list" id="messagesList"></div>
+      </div>
+    </div>
+    
+    <!-- 培养舱 -->
+    <div class="page" id="pageChamber">
+      <button class="back-btn" onclick="showPage('home')">◀ 返回首页</button>
+      <h1 class="page-title">我的基因培养舱</h1>
+      <p class="page-subtitle">// 创造你的专属嵌合生物</p>
+      
+      <div class="chamber-container">
+        <div class="element-library" id="elementLibrary">
+          <div class="library-item" onclick="addElement('🧬', 'dna')">🧬 DNA片段</div>
+          <div class="library-item" onclick="addElement('🌿', 'root')">🌿 植物根系</div>
+          <div class="library-item" onclick="addElement('🌸', 'flower')">🌸 蔷薇花</div>
+          <div class="library-item" onclick="addElement('👁', 'eye')">👁 嵌合眼</div>
+          <div class="library-item" onclick="addElement('🦷', 'tooth')">🦷 兽牙</div>
+          <div class="library-item" onclick="addElement('🦴', 'bone')">🦴 骨骼</div>
+          <div class="library-item" onclick="addElement('🍃', 'leaf')">🍃 叶片</div>
+          <div class="library-item" onclick="addElement('🌱', 'vine')">🌱 藤蔓</div>
+          <div class="library-item" onclick="addElement('👀', 'eyeball')">👀 眼球</div>
+          <div class="library-item" onclick="addElement('🌀', 'antenna')">🌀 触角</div>
+          <div class="library-item" onclick="addElement('🌺', 'petal')">🌺 花瓣</div>
+          <div class="library-item" onclick="addElement('⚡', 'nerve')">⚡ 神经</div>
+        </div>
+        
+        <div class="chamber-area" id="chamberArea"></div>
+        
+        <div class="chamber-controls">
+          <button class="chamber-btn" onclick="saveChamber()">💾 保存舱室</button>
+          <button class="chamber-btn danger" onclick="clearChamber()">🗑️ 重置布局</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- 认证模态框 -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h2 class="modal-title" id="modalTitle">玩家登入</h2>
+        <button class="close-btn" onclick="closeAuthModal()">×</button>
+      </div>
+      
+      <div id="loginForm">
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" class="form-input" id="loginUsername" placeholder="输入用户名">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" class="form-input" id="loginPassword" placeholder="输入密码">
+        </div>
+        <div class="modal-actions">
+          <button class="submit-btn" onclick="handleLogin()">登入</button>
+        </div>
+        <div class="modal-footer">
+          还没有账号？<button class="switch-link" onclick="switchToRegister()">立即注册</button>
+        </div>
+      </div>
+      
+      <div id="registerForm" style="display: none;">
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" class="form-input" id="regUsername" placeholder="输入用户名">
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" class="form-input" id="regPassword" placeholder="输入密码">
+        </div>
+        <div class="form-group">
+          <label>选择残异性状</label>
+          <select class="form-select" id="regTrait">
+            <option>第三只眼</option>
+            <option>发光骨骼</option>
+            <option>花瓣肌肤</option>
+            <option>根系肢体</option>
+            <option>神经触手</option>
+            <option>复眼视觉</option>
+            <option>生物发光</option>
+            <option>金属血脉</option>
+            <option>水晶指甲</option>
+            <option>藤蔓毛发</option>
+            <option>鳞片皮肤</option>
+            <option>鳃呼吸系统</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button class="submit-btn" onclick="handleRegister()">注册</button>
+        </div>
+        <div class="modal-footer">
+          已有账号？<button class="switch-link" onclick="switchToLogin()">立即登入</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="js/script.js"></script>
+</body>
+</html>
